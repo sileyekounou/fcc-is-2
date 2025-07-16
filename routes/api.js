@@ -3,14 +3,6 @@
 const boardService = require('../services/board.service');
 const schemas = require('../schemas/board.schemas');
 
-// const validate = (schema) => (req, res, next) => {
-//   const { error } = schema.validate(req.body);
-//   if (error) {
-//     return res.status(400).json({ error: error.details[0].message });
-//   }
-//   next();
-// };
-
 const validate = (schema, source = 'body') => (req, res, next) => {
   const toValidate = req[source];
   const { error } = schema.validate(toValidate);
@@ -20,18 +12,9 @@ const validate = (schema, source = 'body') => (req, res, next) => {
   next();
 };
 
-// Middleware de sanitisation
-// const sanitize = (req, res, next) => {
-//   for (const key in req.body) {
-//     if (typeof req.body[key] === 'string') {
-//       req.body[key] = req.body[key].replace(/<[^>]*>?/gm, '');
-//     }
-//   }
-//   next();
-// };
 
 const sanitize = (req, res, next) => {
-  const skipFields = ['reply_id', 'thread_id', 'password']; // on ne touche pas à ceux-là
+  const skipFields = ['reply_id', 'thread_id', 'delete_password']; // on ne touche pas à ceux-là
   for (const key in req.body) {
     if (
       typeof req.body[key] === 'string' &&
@@ -55,7 +38,7 @@ module.exports = function (app) {
             await boardService.createThread(
               req.params.board,
               req.body.text,
-              req.body.password
+              req.body.delete_password
             );
             res.redirect(`/b/${req.params.board}/`);
           } catch (error) {
@@ -75,22 +58,20 @@ module.exports = function (app) {
       sanitize,
       validate(schemas.reportThreadSchema),
       async (req, res) => {
-        try {
-          await boardService.reportThread(req.body.thread_id);
-          res.send('reported');
-        } catch (error) {
-          res.status(500).json({ error: `Server error ${error}` });
-        }
+        const result = await boardService.reportThread(req.body.thread_id);
+        res.send(result);
       }
     )
+
     .delete(
       sanitize,
       validate(schemas.deleteThreadSchema),
+      // validate(schemas.deleteThreadSchema, 'body'),
       async (req, res) => {
         try {
           const success = await boardService.deleteThread(
             req.body.thread_id,
-            req.body.password
+            req.body.delete_password
           );
           res.send(success ? 'success' : 'incorrect password');
         } catch (error) {
@@ -108,7 +89,7 @@ module.exports = function (app) {
             await boardService.createReply(
               req.body.thread_id,
               req.body.text,
-              req.body.password
+              req.body.delete_password
             );
             res.redirect(`/b/${req.params.board}/${req.body.thread_id}`);
           } catch (error) {
@@ -131,10 +112,12 @@ module.exports = function (app) {
       validate(schemas.reportReplySchema),
       async (req, res) => {
         try {
-          await boardService.reportReply(req.body.reply_id);
-          res.send('reported');
+          const result = await boardService.reportReply(
+            req.body.reply_id
+          );
+          res.send(result);
         } catch (error) {
-          res.status(500).json({ error: `Server error ${error}` });
+          res.status(500).json({ error: error.message });
         }
       }
     )
@@ -143,16 +126,16 @@ module.exports = function (app) {
       validate(schemas.deleteReplySchema),
       async (req, res) => {
         try {
-          
           const success = await boardService.deleteReply(
+            req.body.thread_id, // Ajouté
             req.body.reply_id,
-            req.body.password
+            req.body.delete_password
           );
           res.send(success ? 'success' : 'incorrect password');
         } catch (error) {
           res.status(500).json({ error: `Server error ${error}` });
         }
       }
-    );
+    )
 
 };

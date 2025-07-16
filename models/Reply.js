@@ -15,7 +15,7 @@ const replySchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  password: {
+  delete_password: {
     type: String,
     required: true
   },
@@ -27,21 +27,3 @@ const replySchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Reply', replySchema);
-
-replySchema.pre('save', async function(next) {
-  // Ne hash le mot de passe que s'il est modifié ou nouveau
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Méthode pour comparer les mots de passe
-replySchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};

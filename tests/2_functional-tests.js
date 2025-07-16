@@ -9,14 +9,14 @@ suite('Functional Tests', function() {
   let testThreadId;
   let testReplyId;
   const board = 'testboard';
-  const password = 'test123';
+  const delete_password = 'test123';
 
   // 1. Create new thread + récupération de son ID
   test('POST /api/threads/{board} - Create new thread', function(done) {
     chai.request(server)
       .post(`/api/threads/${board}`)
       .redirects(0)
-      .send({ text: 'Test thread', password })
+      .send({ text: 'Test thread', delete_password })
       .end((err, res) => {
         assert.equal(res.status, 302);
 
@@ -48,18 +48,21 @@ suite('Functional Tests', function() {
   test('DELETE /api/threads/{board} - Incorrect password', function(done) {
     chai.request(server)
       .delete(`/api/threads/${board}`)
-      .send({ thread_id: testThreadId, password: 'badpass' })
+      .send({ thread_id: testThreadId, delete_password: 'badpass' })
       .end((err, res) => {
         assert.equal(res.text, 'incorrect password');
         done();
       });
   });
 
-  // 4. Delete thread with correct password
+  // Tests (exemple pour deleteThread)
   test('DELETE /api/threads/{board} - Correct password', function(done) {
     chai.request(server)
       .delete(`/api/threads/${board}`)
-      .send({ thread_id: testThreadId, password })
+      .send({
+        thread_id: testThreadId,
+        delete_password: delete_password
+      })
       .end((err, res) => {
         assert.equal(res.text, 'success');
         done();
@@ -72,7 +75,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .post(`/api/threads/${board}`)
       .redirects(0)
-      .send({ text: 'Thread à report', password })
+      .send({ text: 'Thread à report', delete_password })
       .end((err, res) => {
         // récupération ID
         chai.request(server)
@@ -97,7 +100,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .post(`/api/threads/${board}`)
       .redirects(0)
-      .send({ text: 'Thread pour reply', password })
+      .send({ text: 'Thread pour reply', delete_password })
       .end((err, res) => {
         // récupération ID
         chai.request(server)
@@ -108,7 +111,7 @@ suite('Functional Tests', function() {
             chai.request(server)
               .post(`/api/replies/${board}`)
               .redirects(0)
-              .send({ thread_id: testThreadId, text: 'Ma réponse', password })
+              .send({ thread_id: testThreadId, text: 'Ma réponse', delete_password })
               .end((err3, res3) => {
                 assert.equal(res3.status, 302);
                 done();
@@ -121,7 +124,7 @@ suite('Functional Tests', function() {
   test('GET /api/replies/{board} - Get thread with replies', function(done) {
     chai.request(server)
       .get(`/api/replies/${board}`)
-      .query({ thread_id: testThreadId })   // use query, not send
+      .query({ thread_id: testThreadId })
       .end((err, res) => {
         assert.equal(res.status, 200);
         assert.property(res.body, '_id');
@@ -136,7 +139,11 @@ suite('Functional Tests', function() {
   test('DELETE /api/replies/{board} - Incorrect password', function(done) {
     chai.request(server)
       .delete(`/api/replies/${board}`)
-      .send({ reply_id: testReplyId, password: 'badpass' })
+      .send({
+        thread_id: testThreadId,
+        reply_id: testReplyId,
+        delete_password: 'badpass'
+      })
       .end((err, res) => {
         assert.equal(res.text, 'incorrect password');
         done();
@@ -147,7 +154,11 @@ suite('Functional Tests', function() {
   test('DELETE /api/replies/{board} - Correct password', function(done) {
     chai.request(server)
       .delete(`/api/replies/${board}`)
-      .send({ reply_id: testReplyId, password })
+      .send({
+        thread_id: testThreadId,
+        reply_id: testReplyId,
+        delete_password: delete_password
+      })
       .end((err, res) => {
         assert.equal(res.text, 'success');
         done();
@@ -158,7 +169,10 @@ suite('Functional Tests', function() {
   test('PUT /api/replies/{board} - Report reply', function(done) {
     chai.request(server)
       .put(`/api/replies/${board}`)
-      .send({ reply_id: testReplyId })
+      .send({
+        thread_id: testThreadId,
+        reply_id: testReplyId
+      })
       .end((err, res) => {
         assert.equal(res.text, 'reported');
         done();

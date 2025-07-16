@@ -22,17 +22,19 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(helmet({
-  frameguard: { action: 'deny' },
+  frameguard: { action: 'sameorigin' },
+  referrerPolicy: { policy: 'same-origin' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-    },
+      frameAncestors: ["'self'"]  // ✅ autorise uniquement les iframes de ton domaine
+    }
   },
   noSniff: true,
-  xssFilter: true,
+  xssFilter: true
 }));
 
 //Sample front-end
