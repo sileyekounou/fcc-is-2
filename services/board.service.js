@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 module.exports = {
-  // Thread operations
   createThread: async (board, text, delete_password) => {
     const hashed = await bcrypt.hash(delete_password, saltRounds);
     return new Thread({ board, text, delete_password: hashed }).save();
@@ -44,26 +43,24 @@ module.exports = {
     await Thread.findByIdAndDelete(thread_id);
     return true;
   },
- 
+
   createReply: async (thread_id, text, delete_password) => {
     try {
       const hashed = await bcrypt.hash(delete_password, saltRounds);
       
-      // Vérifier que le thread existe
       const thread = await Thread.findById(thread_id);
       if (!thread) throw new Error('Thread not found');
       
-      // Créer la réponse dans la collection Reply
       const reply = new Reply({
         text,
         thread: thread_id,
-        delete_password: hashed
+        delete_password: hashed,
+        created_on: new Date()
       });
       await reply.save();
       
-      // Mettre à jour le thread
       thread.replies.push(reply._id);
-      thread.bumped_on = new Date();
+      thread.bumped_on = reply.created_on;
       await thread.save();
       
       return reply;
@@ -72,32 +69,47 @@ module.exports = {
     }
   },
 
-  
+
   getThreadWithReplies: async (thread_id) => {
-    return await Thread.findById(thread_id)
+    const thread = await Thread.findById(thread_id)
       .populate({
         path: 'replies',
-        select: '-reported -delete_password',
-        options: { sort: { created_on: 1 }}
-    })
-      .select('-reported -delete_password')
+        select: '-delete_password -reported',
+        options: { sort: { created_on: 1 } }
+      })
+      .select('-delete_password -reported')
       .lean();
+
+    if (!thread) return null;
+
+    // Formater les dates en ISO strings
+    thread.created_on = new Date(thread.created_on).toISOString();
+    thread.bumped_on = new Date(thread.bumped_on).toISOString();
+    
+    // Formater les dates des réponses
+    thread.replies.forEach(reply => {
+      reply.created_on = new Date(reply.created_on).toISOString();
+    });
+
+    return thread;
   },
-  
-  reportReply: async (reply_id) => {
+
+  // board.service.js
+  reportReply: async (reply_id, thread_id) => {
     try {
-      await Reply.findByIdAndUpdate(
+      const reply = await Reply.findByIdAndUpdate(
         reply_id,
         { reported: true },
         { new: true }
       );
+      
+      if (!reply) throw new Error('Reply not found');
       return 'reported';
     } catch (error) {
       throw new Error(`Error reporting reply: ${error.message}`);
     }
   },
-
-  // board.service.js
+  
   deleteReply: async (thread_id, reply_id, delete_password) => {
     try {
       const reply = await Reply.findById(reply_id);

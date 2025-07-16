@@ -2,7 +2,7 @@ const chaiHttp = require('chai-http');
 const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
-
+const Reply = require('../models/Reply')
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
@@ -166,16 +166,231 @@ suite('Functional Tests', function() {
   });
 
   // 10. Report reply
+  // test('PUT /api/replies/{board} - Report reply', function(done) {
+  //   chai.request(server)
+  //     .put(`/api/replies/${board}`)
+  //     .send({
+  //       reply_id: testReplyId  // Seul reply_id est requis
+  //     })
+  //     .end((err, res) => {
+  //       assert.equal(res.text, 'reported');
+  //       done();
+  //     });
+  // });
+  // test
+  // test('PUT /api/replies/{board} - Report reply', function(done) {
+  //   // Créer d'abord une réponse à signaler
+  //   chai.request(server)
+  //     .post(`/api/threads/${board}`)
+  //     .send({ text: 'Thread for reply', delete_password })
+  //     .end((err, res) => {
+  //       chai.request(server)
+  //         .get(`/api/threads/${board}`)
+  //         .end((err2, res2) => {
+  //           const threadId = res2.body[0]._id;
+            
+  //           // Créer une réponse
+  //           chai.request(server)
+  //             .post(`/api/replies/${board}`)
+  //             .send({ thread_id: threadId, text: 'Test reply', delete_password })
+  //             .end((err3, res3) => {
+  //               // Récupérer l'ID de la réponse
+  //               chai.request(server)
+  //                 .get(`/api/replies/${board}`)
+  //                 .query({ thread_id: threadId })
+  //                 .end((err4, res4) => {
+  //                   const replyId = res4.body.replies[0]._id;
+                    
+  //                   // Signaler la réponse
+  //                   chai.request(server)
+  //                     .put(`/api/replies/${board}`)
+  //                     .send({ reply_id: replyId })
+  //                     .end((err5, res5) => {
+  //                       assert.equal(res5.text, 'reported');
+                        
+  //                       // Vérifier que le champ reported est bien true
+  //                       chai.request(server)
+  //                         .get(`/api/replies/${board}`)
+  //                         .query({ thread_id: threadId })
+  //                         .end((err6, res6) => {
+  //                           assert.equal(res6.body.replies[0].reported, true);
+  //                           done();
+  //                         });
+  //                     });
+  //                 });
+  //             });
+  //         });
+  //     });
+  // });
+
+  // test('PUT /api/replies/{board} - Report reply', function(done) {
+  //   // Créer un thread
+  //   chai.request(server)
+  //     .post(`/api/threads/${board}`)
+  //     .send({ text: 'Thread for reply', delete_password })
+  //     .end((err, res) => {
+  //       // Récupérer l'ID du thread
+  //       chai.request(server)
+  //         .get(`/api/threads/${board}`)
+  //         .end((err2, res2) => {
+  //           const threadId = res2.body[0]._id;
+            
+  //           // Créer une réponse
+  //           chai.request(server)
+  //             .post(`/api/replies/${board}`)
+  //             .send({ thread_id: threadId, text: 'Test reply', delete_password })
+  //             .end((err3, res3) => {
+  //               // Récupérer l'ID de la réponse
+  //               chai.request(server)
+  //                 .get(`/api/replies/${board}`)
+  //                 .query({ thread_id: threadId })
+  //                 .end((err4, res4) => {
+  //                   const replyId = res4.body.replies[0]._id;
+                    
+  //                   // Signaler la réponse
+  //                   chai.request(server)
+  //                     .put(`/api/replies/${board}`)
+  //                     .send({ reply_id: replyId })
+  //                     .end((err5, res5) => {
+  //                       assert.equal(res5.text, 'reported');
+                        
+  //                       // Vérifier le champ reported
+  //                       chai.request(server)
+  //                         .get(`/api/replies/${board}`)
+  //                         .query({ thread_id: threadId })
+  //                         .end((err6, res6) => {
+  //                           // Vérifier directement dans le modèle Reply
+  //                           Reply.findById(replyId, (err, reply) => {
+  //                             assert.equal(reply.reported, true);
+  //                             done();
+  //                           });
+  //                         });
+  //                     });
+  //                 });
+  //             });
+  //         });
+  //     });
+  // });
+
+//   test('PUT /api/replies/{board} - Report reply', function(done) {
+//   // Créer un thread
+//   chai.request(server)
+//     .post(`/api/threads/${board}`)
+//     .send({ text: 'Thread for reply', delete_password })
+//     .end((err, res) => {
+//       if (err) return done(err);
+      
+//       // Récupérer l'ID du thread
+//       const threadId = res.body._id || testThreadId; // Utiliser l'ID directement si disponible
+      
+//       // Créer une réponse
+//       chai.request(server)
+//         .post(`/api/replies/${board}`)
+//         .send({ thread_id: threadId, text: 'Test reply', delete_password })
+//         .end((err2, res2) => {
+//           if (err2) return done(err2);
+          
+//           // Récupérer l'ID de la réponse
+//           const replyId = res2.body._id;
+          
+//           // Signaler la réponse
+//           chai.request(server)
+//             .put(`/api/replies/${board}`)
+//             .send({ reply_id: replyId })
+//             .end((err3, res3) => {
+//               if (err3) return done(err3);
+//               assert.equal(res3.text, 'reported');
+              
+//               // Vérifier dans la base (sans callback)
+//               Reply.findById(replyId)
+//                 .then(reply => {
+//                   assert.equal(reply.reported, true);
+//                   done();
+//                 })
+//                 .catch(err => done(err));
+//             });
+//         });
+//     });
+// });
+
+  // test('PUT /api/replies/{board} - Report reply', function(done) {
+  //   this.timeout(5000); // Augmentez le timeout
+    
+  //   // Créer un thread et une réponse
+  //   chai.request(server)
+  //     .post(`/api/threads/${board}`)
+  //     .send({ text: 'Thread for reply', delete_password })
+  //     .end((err, res) => {
+  //       if (err) return done(err);
+  //       const threadId = res.body._id;
+        
+  //       // Créer une réponse
+  //       chai.request(server)
+  //         .post(`/api/replies/${board}`)
+  //         .send({ thread_id: threadId, text: 'Test reply', delete_password })
+  //         .end((err2, res2) => {
+  //           if (err2) return done(err2);
+  //           const replyId = res2.body._id;
+            
+  //           // Signaler la réponse
+  //           chai.request(server)
+  //             .put(`/api/replies/${board}`)
+  //             .send({ reply_id: replyId }) // Seul reply_id est envoyé
+  //             .end((err3, res3) => {
+  //               if (err3) return done(err3);
+  //               assert.equal(res3.text, 'reported');
+  //               done();
+  //             });
+  //         });
+  //     });
+  // });
   test('PUT /api/replies/{board} - Report reply', function(done) {
+    this.timeout(5000);
+    
+    // Créer un thread
     chai.request(server)
-      .put(`/api/replies/${board}`)
-      .send({
-        thread_id: testThreadId,
-        reply_id: testReplyId
-      })
+      .post(`/api/threads/${board}`)
+      .send({ text: 'Thread for reply', delete_password })
       .end((err, res) => {
-        assert.equal(res.text, 'reported');
-        done();
+        if (err) return done(err);
+        
+        // Récupérer l'ID du thread depuis la liste
+        chai.request(server)
+          .get(`/api/threads/${board}`)
+          .end((err2, res2) => {
+            if (err2) return done(err2);
+            const threadId = res2.body[0]._id;
+            
+            // Créer une réponse
+            chai.request(server)
+              .post(`/api/replies/${board}`)
+              .send({ thread_id: threadId, text: 'Test reply', delete_password })
+              .end((err3, res3) => {
+                if (err3) return done(err3);
+                
+                // Récupérer l'ID de la réponse depuis le thread
+                chai.request(server)
+                  .get(`/api/replies/${board}`)
+                  .query({ thread_id: threadId })
+                  .end((err4, res4) => {
+                    if (err4) return done(err4);
+                    const replyId = res4.body.replies[0]._id;
+                    
+                    // Signaler la réponse
+                    chai.request(server)
+                      .put(`/api/replies/${board}`)
+                      .send({
+                        thread_id: threadId,
+                        reply_id: replyId
+                      })
+                      .end((err5, res5) => {
+                        if (err5) return done(err5);
+                        assert.equal(res5.text, 'reported');
+                        done();
+                      });
+                  });
+              });
+          });
       });
   });
 });

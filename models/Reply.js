@@ -1,28 +1,17 @@
 const mongoose = require('mongoose');
 
+// reply.model.js
 const replySchema = new mongoose.Schema({
-
-  
-  text: {
-    type: String,
-    required: true
-  },
-  created_on: {
-    type: Date,
-    default: Date.now
-  },
-  reported: {
-    type: Boolean,
+  text: String,
+  created_on: Date,
+  reported: { 
+    type: Boolean, 
     default: false
   },
-  delete_password: {
-    type: String,
-    required: true
-  },
+  delete_password: String,
   thread: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Thread',
-    required: true
+    ref: 'Thread'
   }
 });
 

@@ -12,7 +12,6 @@ const validate = (schema, source = 'body') => (req, res, next) => {
   next();
 };
 
-
 const sanitize = (req, res, next) => {
   const skipFields = ['reply_id', 'thread_id', 'delete_password']; // on ne touche pas à ceux-là
   for (const key in req.body) {
@@ -25,7 +24,6 @@ const sanitize = (req, res, next) => {
   }
   next();
 };
-
 
 module.exports = function (app) {
   
@@ -107,16 +105,19 @@ module.exports = function (app) {
         }
       }
     )
+    
     .put(
       sanitize,
       validate(schemas.reportReplySchema),
       async (req, res) => {
         try {
           const result = await boardService.reportReply(
-            req.body.reply_id
+            req.body.reply_id,
+            req.body.thread_id
           );
           res.send(result);
         } catch (error) {
+          // Envoyer un message d'erreur spécifique
           res.status(500).json({ error: error.message });
         }
       }
